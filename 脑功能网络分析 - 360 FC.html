@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脑功能网络</title>
+    <style>
+        :root {
+            --bg-color: #050a18;
+            --panel-bg: rgba(20, 26, 35, 0.8);
+            --accent-color: #00e5ff;
+            --text-primary: #ffffff;
+            --text-secondary: #a0c4ff;
+            --border-color: rgba(0, 191, 255, 0.2);
+            --danger-text: #ff4d4d;
+            --matrix-hot: #ff3d00;
+            --matrix-cold: #004dff;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* 顶部导航与标题 */
+        .header-nav {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .header-nav h1 {
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: normal;
+            margin: 0 0 10px 0;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .title-row h2 {
+            font-size: 28px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .matrix-tag {
+            color: var(--danger-text);
+            border: 1px solid var(--danger-text);
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* 矩阵展示区域 */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .matrix-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 模拟 360 FC 矩阵图 (使用 CSS 渐变模拟热图感) */
+        .matrix-box {
+            width: 100%;
+            aspect-ratio: 1.4;
+            background: #000;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 模拟矩阵的像素点背景 */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 61, 0, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(0, 77, 255, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.2) 0%, transparent 50%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 3px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.02) 3px);
+        }
+
+        .matrix-box::before {
+            content: "360x360 Connectivity Matrix";
+            position: absolute;
+            font-size: 10px;
+            color: rgba(255,255,255,0.2);
+            top: 5px;
+            left: 5px;
+        }
+
+        .matrix-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .date-label {
+            margin-top: 20px;
+            font-size: 16px;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.05);
+            padding: 5px 25px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+        }
+
+        /* 底部推荐区域 */
+        .recommendation-section {
+            margin-top: 80px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px dotted var(--border-color);
+        }
+
+        .rec-title {
+            font-size: 18px;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .rec-btn {
+            padding: 10px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-rtms {
+            background: #ffe0d6; /* 淡淡的红褐色调，对应草图 */
+            color: #d84315;
+        }
+
+        .btn-tdcs {
+            background: #cfd8dc; /* 灰蓝色调，对应草图 */
+            color: #455a64;
+        }
+
+        .rec-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* 辅助返回按钮 */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body.fc-page {
+            padding: 18px 15px 36px;
+            background:
+                linear-gradient(135deg, rgba(45, 212, 191, 0.08), transparent 30%),
+                linear-gradient(225deg, rgba(129, 140, 248, 0.12), transparent 34%),
+                #07111f;
+            color: var(--text-primary);
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        .fc-page .module-header,
+        .fc-page .matrix-section,
+        .fc-page .recommendation-section {
+            width: min(1264px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .fc-page .module-topbar {
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .fc-page .module-title {
+            color: var(--text-primary) !important;
+            font-size: 18px !important;
+        }
+
+        .fc-page .module-back {
+            color: var(--text-secondary);
+        }
+
+        .fc-page .module-back:hover {
+            color: var(--accent-color);
+        }
+
+        .fc-page .module-back img {
+            filter: none;
+            opacity: 0.72;
+        }
+
+        .fc-page .subject-info-card,
+        .fc-page .matrix-section,
+        .fc-page .recommendation-section {
+            background: rgba(11, 24, 39, 0.58);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(16px);
+        }
+
+        .fc-page .subject-info-card {
+            padding: 18px 26px 16px;
+        }
+
+        .fc-page .subject-info-title,
+        .fc-page .section-heading,
+        .fc-page .rec-title {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .fc-page .subject-info-grid {
+            color: var(--text-secondary);
+            max-width: 880px;
+        }
+
+        .fc-page .subject-info-grid strong {
+            color: var(--text-primary);
+        }
+
+        .fc-page .matrix-section {
+            margin-top: 26px;
+            padding: 26px 26px 30px;
+        }
+
+        .fc-page .section-heading,
+        .fc-page .rec-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 28px;
+        }
+
+        .fc-page .section-heading::before,
+        .fc-page .rec-title::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid var(--text-secondary);
+            border-radius: 4px;
+            background:
+                linear-gradient(var(--text-secondary), var(--text-secondary)) 5px 5px / 9px 1px no-repeat,
+                linear-gradient(var(--text-secondary), var(--text-secondary)) 5px 10px / 11px 1px no-repeat,
+                linear-gradient(var(--text-secondary), var(--text-secondary)) 5px 15px / 8px 1px no-repeat;
+        }
+
+        .fc-page .section-heading::before {
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 35% 35%, var(--text-secondary) 0 2px, transparent 2px),
+                radial-gradient(circle at 65% 35%, var(--text-secondary) 0 2px, transparent 2px),
+                radial-gradient(circle at 50% 65%, var(--text-secondary) 0 2px, transparent 2px);
+        }
+
+        .fc-page .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 54px;
+            margin: 0;
+        }
+
+        .fc-page .matrix-item {
+            min-width: 0;
+        }
+
+        .fc-page .matrix-box {
+            width: 100%;
+            aspect-ratio: 1.18;
+            background: rgba(255, 255, 255, 0.02);
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .fc-page .matrix-box::before {
+            content: none;
+        }
+
+        .fc-page .matrix-image {
+            object-fit: contain;
+        }
+
+        .fc-page .date-label {
+            margin-top: 18px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            color: var(--accent-strong);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .fc-page .recommendation-section {
+            margin-top: 24px;
+            padding: 24px 26px 18px;
+            display: block;
+        }
+
+        .fc-page .recommendation-section .btn-group {
+            display: flex;
+            gap: 48px;
+            margin-left: 40px;
+        }
+
+        .fc-page .rec-btn {
+            min-width: 76px;
+            min-height: 30px;
+            padding: 0 18px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(148, 194, 230, 0.38);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 400;
+            box-shadow: none;
+        }
+
+        .fc-page .btn-rtms {
+            color: var(--accent-color);
+            border-color: rgba(45, 212, 191, 0.76);
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        .fc-page .rec-btn:hover {
+            transform: none;
+            filter: none;
+            box-shadow: none;
+        }
+
+        .fc-page .recommendation-note {
+            display: none;
+        }
+
+        @media (max-width: 980px) {
+            .fc-page .matrix-grid {
+                grid-template-columns: 1fr;
+                gap: 34px;
+            }
+
+            .fc-page .matrix-box {
+                max-width: 420px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body class="fc-page">
+
+    <div class="header-nav module-header">
+        <div class="module-topbar">
+            <h1 class="module-title">脑功能网络</h1>
+            <nav class="return-nav">
+                <a href="个体数字画像.html" class="back-link back-icon module-back" aria-label="返回上一级" title="返回上一级"><img src="123.svg" alt=""><span>返回</span></a>
+            </nav>
+        </div>
+        <section class="subject-info-card" aria-label="被试者基本信息">
+            <div class="subject-info-title">基本信息</div>
+            <div class="subject-info-grid">
+                <div>编号：<strong>NN_00000001</strong></div>
+                <div>诊断：<strong>4.1双相情感障碍 I型</strong></div>
+                <div>组别：<strong>普通组</strong></div>
+                <div>性别：<strong>男</strong></div>
+                <div>年龄：<strong>12</strong></div>
+            </div>
+        </section>
+    </div>
+
+    <section class="matrix-section">
+        <h2 class="section-heading">功能网络连接矩阵</h2>
+        <div class="matrix-grid">
+        <!-- 周期 1 -->
+        <div class="matrix-item">
+            <div class="matrix-box">
+                <!-- 此处在实际项目中可放置 image_256885.png 相关的分析图 -->
+                <img src="naogn.png" alt="脑功能网络分析图 S001" class="matrix-image">
+            </div>
+            <div class="date-label">S001</div>
+        </div>
+
+        <!-- 周期 2 -->
+        <div class="matrix-item">
+            <div class="matrix-box">
+                <img src="naogn.png" alt="脑功能网络分析图 S002" class="matrix-image">
+            </div>
+            <div class="date-label">S002</div>
+        </div>
+
+        <!-- 周期 3 -->
+        <div class="matrix-item">
+            <div class="matrix-box">
+                <img src="naogn.png" alt="脑功能网络分析图 S003" class="matrix-image">
+            </div>
+            <div class="date-label">S003</div>
+        </div>
+        </div>
+    </section>
+
+    <footer class="recommendation-section">
+        <div class="rec-title">神经调控类别推荐</div>
+        <div class="btn-group">
+            <button class="rec-btn btn-rtms">rTMS</button>
+            <button class="rec-btn btn-tdcs">tDCS</button>
+        </div>
+        <div class="recommendation-note" style="margin-left: auto; font-size: 13px; color: var(--text-secondary); opacity: 0.7;">
+            *基于 FC 网络关联性自动生成推荐建议
+        </div>
+    </footer>
+
+</body>
+</html>

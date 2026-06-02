@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 助手</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ai-page {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .ai-header {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .ai-title,
+        .module-title {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.35;
+        }
+
+        .ai-subtitle {
+            margin: 8px 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            max-width: 820px;
+        }
+
+        .ai-layout {
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        .ai-sidebar,
+        .chat-shell,
+        .handoff-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .ai-sidebar {
+            padding: 20px;
+        }
+
+        .account-panel,
+        .profile-block,
+        .history-panel,
+        .side-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(148, 194, 230, 0.14);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .account-panel + .profile-block,
+        .profile-block + .history-panel,
+        .history-panel + .side-section,
+        .side-section + .side-section {
+            margin-top: 16px;
+        }
+
+        .panel-label {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(45, 212, 191, 0.1);
+            color: var(--accent-color);
+            font-size: 12px;
+        }
+
+        .account-title,
+        .history-panel h2,
+        .side-section h2 {
+            margin: 12px 0 8px;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .account-copy,
+        .profile-meta,
+        .history-empty,
+        .signal-item span,
+        .session-summary,
+        .session-meta {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .auth-actions,
+        .toolbar-actions,
+        .modal-actions,
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .primary-btn,
+        .ghost-btn,
+        .quick-prompts button,
+        .send-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-primary);
+            border: 1px solid rgba(45, 212, 191, 0.42);
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .primary-btn,
+        .quick-prompts button,
+        .send-btn {
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        .ghost-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(148, 194, 230, 0.24);
+        }
+
+        .primary-btn:hover,
+        .ghost-btn:hover,
+        .quick-prompts button:hover,
+        .send-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(45, 212, 191, 0.16);
+            border-color: var(--accent-color);
+        }
+
+        .profile-name {
+            margin-top: 12px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .risk-pill,
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .risk-pill {
+            color: var(--danger);
+            border: 1px solid rgba(251, 113, 133, 0.5);
+            background: rgba(251, 113, 133, 0.08);
+        }
+
+        .status-chip.active {
+            color: var(--accent-color);
+            border: 1px solid rgba(45, 212, 191, 0.36);
+            background: rgba(45, 212, 191, 0.08);
+        }
+
+        .status-chip.handed_off {
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.34);
+            background: rgba(251, 191, 36, 0.08);
+        }
+
+        .status-chip.closed {
+            color: #cbd5e1;
+            border: 1px solid rgba(203, 213, 225, 0.26);
+            background: rgba(203, 213, 225, 0.08);
+        }
+
+        .history-list,
+        .signal-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-card,
+        .signal-item {
+            padding: 12px;
+            border: 1px solid rgba(148, 194, 230, 0.16);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .history-card.active {
+            border-color: rgba(45, 212, 191, 0.48);
+            background: rgba(45, 212, 191, 0.08);
+        }
+
+        .history-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .history-title {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .history-tag {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid rgba(148, 194, 230, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .history-tag.handed_off {
+            color: var(--warning);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .history-tag.active {
+            color: var(--accent-color);
+            border-color: rgba(45, 212, 191, 0.3);
+        }
+
+        .history-tag.closed {
+            color: #cbd5e1;
+            border-color: rgba(203, 213, 225, 0.24);
+        }
+
+        .signal-item strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .chat-shell {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(11, 24, 39, 0.56);
+        }
+
+        .chat-toolbar h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .toolbar-subtitle {
+            margin: 6px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .model-badge {
+            color: var(--accent-color);
+            border: 1px solid rgba(45, 212, 191, 0.42);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: rgba(45, 212, 191, 0.08);
+        }
+
+        .quick-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .chat-messages {
+            flex: 1;
+            min-height: 420px;
+            max-height: calc(100vh - 360px);
+            overflow-y: auto;
+            padding: 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 78%;
+            padding: 14px 16px;
+            border-radius: 8px;
+            line-height: 1.75;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(148, 194, 230, 0.18);
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: rgba(45, 212, 191, 0.14);
+            border: 1px solid rgba(45, 212, 191, 0.34);
+        }
+
+        .message.system {
+            max-width: 100%;
+            align-self: center;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.24);
+            color: #fde68a;
+        }
+
+        .message-meta {
+            display: block;
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .chat-input {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 104px;
+            gap: 12px;
+            padding: 16px 20px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(7, 17, 31, 0.42);
+        }
+
+        .chat-input textarea {
+            width: 100%;
+            min-height: 52px;
+            max-height: 120px;
+            resize: vertical;
+            padding: 13px 14px;
+            color: var(--text-primary);
+            background: rgba(7, 17, 31, 0.78);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .chat-input textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .send-btn {
+            min-height: 52px;
+            font-weight: 700;
+        }
+
+        .login-tip {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px dashed rgba(148, 194, 230, 0.22);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .modal-mask {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(3, 9, 18, 0.72);
+            z-index: 30;
+        }
+
+        .modal-mask.open {
+            display: flex;
+        }
+
+        .handoff-modal {
+            width: min(520px, 100%);
+            padding: 22px;
+            background: rgba(10, 24, 40, 0.96);
+        }
+
+        .handoff-modal h3 {
+            margin: 0 0 10px;
+            font-size: 20px;
+        }
+
+        .handoff-modal p {
+            margin: 0 0 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .modal-reason {
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.18);
+            background: rgba(251, 191, 36, 0.06);
+            color: #fde68a;
+            margin-bottom: 16px;
+            line-height: 1.7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1080px) {
+            .ai-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-messages {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .ai-header,
+            .chat-toolbar,
+            .history-topline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .chat-input {
+                grid-template-columns: 1fr;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="ai-page">
+        <header class="header ai-header">
+            <div class="title-top">
+                <h1 class="module-title">AI智能问答</h1>
+                <nav class="return-nav">
+                    <a href="个体数字画像.html" class="back-link back-icon module-back" aria-label="返回上一级" title="返回上一级"><img src="123.svg" alt=""><span>返回</span></a>
+                </nav>
+            </div>
+            
+            <div>
+                <div class="project-kicker">综合智能心理服务载体 · 干预决策支持</div>
+                <p class="ai-subtitle">在现有被试者数字画像基础上，结合多模态指标、历史会话与风险信号，提供结构化建议；当对话出现需要人工支持的节点时，可提示治疗师线上接入。</p>
+            </div>
+        </header>
+
+        <section class="ai-layout">
+            <aside class="ai-sidebar">
+                <section class="account-panel">
+                    <div class="panel-label" id="authLabel">未登录体验</div>
+                    <h2 class="account-title" id="authTitle">匿名体验模式</h2>
+                    <p class="account-copy" id="authCopy">当前仅展示 AI 对话体验。未登录时不展示历史会话，适合做单次匿名咨询预演。</p>
+                    <div class="auth-actions">
+                        <button type="button" class="primary-btn" id="loginToggleBtn">被试者登录</button>
+                        <button type="button" class="ghost-btn hidden" id="logoutBtn">退出登录</button>
+                    </div>
+                    <div class="login-tip" id="guestTip">登录后可查看既往会话摘要、当前接入状态与人工介入记录。</div>
+                </section>
+
+                <section class="profile-block hidden" id="profileBlock">
+                    <div class="panel-label">被试者档案</div>
+                    <div class="profile-name">张晓晨 · #HZ-20260501</div>
+                    <div class="profile-meta">女 / 28 岁<br>入院日期：2026-05-01<br>当前周期：第 3 次随访</div>
+                    <div class="risk-pill">高风险预警 · 需复核</div>
+                </section>
+
+                <section class="history-panel hidden" id="historyPanel">
+                    <div class="history-topline">
+                        <div>
+                            <div class="panel-label">对话历史</div>
+                            <h2>历史会话</h2>
+                        </div>
+                        <div class="history-actions">
+                            <button type="button" class="ghost-btn" id="resetDataBtn">重置演示数据</button>
+                        </div>
+                    </div>
+                    <div class="history-list" id="historyList"></div>
+                    <div class="history-empty hidden" id="historyEmpty">当前暂无可展示的历史会话。</div>
+                </section>
+
+                <section class="side-section">
+                    <div class="panel-label">推荐依据</div>
+                    <h2>当前多模态信号</h2>
+                    <div class="signal-list">
+                        <div class="signal-item">
+                            <strong>S-A 轴分析</strong>
+                            <span>DLPFC 靶点优先级上升，建议与近期情绪波动和执行功能记录联动评估。</span>
+                        </div>
+                        <div class="signal-item">
+                            <strong>360 FC 网络</strong>
+                            <span>前额叶相关连接稳定性下降，提示近期干预节律与恢复趋势仍需跟踪。</span>
+                        </div>
+                        <div class="signal-item">
+                            <strong>生理节律</strong>
+                            <span>HRV 波动偏大，睡眠稳定性不足，应纳入日常干预重点指标。</span>
+                        </div>
+                        <div class="signal-item">
+                            <strong>语音特征</strong>
+                            <span>访谈任务中的语速与能量下降，建议关注情绪动力变化与家属反馈。</span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <section class="chat-shell">
+                <div class="chat-toolbar">
+                    <div>
+                        <h2 id="chatTitle">AI 助手对话</h2>
+                        <p class="toolbar-subtitle" id="chatSubtitle">结合当前被试者画像输出建议，可在需要时提示治疗师人工介入。</p>
+                    </div>
+                    <div class="toolbar-actions">
+                        <div class="model-badge" id="modelBadge">Local Demo AI</div>
+                    </div>
+                </div>
+
+                <div class="quick-prompts">
+                    <button type="button" data-prompt="请生成本周干预计划">生成本周干预计划</button>
+                    <button type="button" data-prompt="解释为什么推荐TMS">解释推荐依据</button>
+                    <button type="button" data-prompt="分析当前风险变化原因">风险变化分析</button>
+                    <button type="button" data-prompt="请问我最近情绪越来越差，是否需要治疗师介入">触发人工介入</button>
+                </div>
+
+                <div class="chat-messages" id="chatMessages"></div>
+
+                <form class="chat-input" id="chatForm">
+                    <textarea id="chatInput" placeholder="输入你想让 AI 分析的问题，例如：请根据最近三次随访生成治疗建议"></textarea>
+                    <button class="send-btn" type="submit">发送</button>
+                </form>
+            </section>
+        </section>
+    </main>
+
+    <div class="modal-mask" id="handoffModalMask">
+        <div class="handoff-modal">
+            <h3>建议治疗师线上接入</h3>
+            <p>当前对话已触发人工支持节点，是否发起治疗师线上介入？接入后将保留原 AI 会话，并新建一个治疗师人工会话。</p>
+            <div class="modal-reason" id="handoffReason"></div>
+            <div class="modal-actions">
+                <button type="button" class="primary-btn" id="confirmHandoffBtn">确认接入</button>
+                <button type="button" class="ghost-btn" id="cancelHandoffBtn">暂不接入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "qsn-ai-demo-state-v1";
+
+        const authLabel = document.getElementById("authLabel");
+        const authTitle = document.getElementById("authTitle");
+        const authCopy = document.getElementById("authCopy");
+        const loginToggleBtn = document.getElementById("loginToggleBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const guestTip = document.getElementById("guestTip");
+        const profileBlock = document.getElementById("profileBlock");
+        const historyPanel = document.getElementById("historyPanel");
+        const historyList = document.getElementById("historyList");
+        const historyEmpty = document.getElementById("historyEmpty");
+        const resetDataBtn = document.getElementById("resetDataBtn");
+        const chatTitle = document.getElementById("chatTitle");
+        const chatSubtitle = document.getElementById("chatSubtitle");
+        const chatMessages = document.getElementById("chatMessages");
+        const chatForm = document.getElementById("chatForm");
+        const chatInput = document.getElementById("chatInput");
+        const quickButtons = document.querySelectorAll("[data-prompt]");
+        const handoffModalMask = document.getElementById("handoffModalMask");
+        const handoffReason = document.getElementById("handoffReason");
+        const confirmHandoffBtn = document.getElementById("confirmHandoffBtn");
+        const cancelHandoffBtn = document.getElementById("cancelHandoffBtn");
+
+        function createDefaultState() {
+            return {
+                authState: {
+                    loggedIn: false,
+                    role: "guest"
+                },
+                patientProfile: {
+                    name: "张晓晨",
+                    recordNo: "#HZ-20260501",
+                    genderAge: "女 / 28 岁",
+                    admitDate: "2026-05-01",
+                    phase: "第 3 次随访"
+                },
+                pendingHandoff: null,
+                currentConversationId: "conv-ai-active",
+                therapistConversationId: null,
+                conversations: [
+                    {
+                        id: "conv-ai-active",
+                        title: "AI 初始干预评估",
+                        type: "ai",
+                        status: "active",
+                        updatedAt: "2026-05-12 14:20",
+                        summary: "已结合多模态指标给出干预建议，等待被试者继续追问。",
+                        messages: [
+                            {
+                                role: "assistant",
+                                content: "已读取当前个体的多模态画像。初步建议采用“神经调控 + 心理干预 + 睡眠节律管理”的组合方案。\n1. rTMS / 精准 TMS：优先复核 DLPFC 靶点与近端 FC 网络变化。\n2. CBT 认知干预：围绕负性自动思维与压力事件做结构化访谈。\n3. 睡眠与运动计划：用 HRV 与睡眠时长作为每日反馈指标。",
+                                timestamp: "14:20"
+                            }
+                        ]
+                    },
+                    {
+                        id: "conv-ai-0509",
+                        title: "AI 睡眠稳定性复盘",
+                        type: "ai",
+                        status: "closed",
+                        updatedAt: "2026-05-09 20:15",
+                        summary: "主要讨论睡眠节律和 HRV 波动，建议继续观察三天。",
+                        messages: [
+                            {
+                                role: "assistant",
+                                content: "近三天睡眠潜伏期延长，建议先固定睡前行为并减少晚间刺激输入。",
+                                timestamp: "20:15"
+                            }
+                        ]
+                    },
+                    {
+                        id: "conv-ai-0507",
+                        title: "AI 家属沟通要点",
+                        type: "ai",
+                        status: "closed",
+                        updatedAt: "2026-05-07 18:40",
+                        summary: "已给出与家属沟通情绪波动和依从性的要点。",
+                        messages: [
+                            {
+                                role: "assistant",
+                                content: "建议家属关注作息、情绪诱因和治疗依从性，不要只盯单次指标。",
+                                timestamp: "18:40"
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        function loadState() {
+            try {
+                const raw = window.localStorage.getItem(STORAGE_KEY);
+                if (!raw) return createDefaultState();
+                return JSON.parse(raw);
+            } catch (error) {
+                return createDefaultState();
+            }
+        }
+
+        let state = loadState();
+
+        function saveState() {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function getConversationById(id) {
+            return state.conversations.find((item) => item.id === id);
+        }
+
+        function formatStatus(status) {
+            if (status === "active") return "AI进行中";
+            if (status === "handed_off") return "已转治疗师";
+            if (status === "handoff_pending") return "待接入";
+            return "已结束";
+        }
+
+        function formatNowTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            return hours + ":" + minutes;
+        }
+
+        function renderAuth() {
+            const loggedIn = state.authState.loggedIn;
+            authLabel.textContent = loggedIn ? "被试者已登录" : "未登录体验";
+            authTitle.textContent = loggedIn ? "被试者会话工作台" : "匿名体验模式";
+            authCopy.textContent = loggedIn
+                ? "当前可查看历史会话、接入状态与人工介入记录。AI 会话与治疗师会话将并行保留。"
+                : "当前仅展示 AI 对话体验。未登录时不展示历史会话，适合做单次匿名咨询预演。";
+            loginToggleBtn.textContent = loggedIn ? "切换为未登录" : "被试者登录";
+            logoutBtn.classList.toggle("hidden", !loggedIn);
+            guestTip.classList.toggle("hidden", loggedIn);
+            profileBlock.classList.toggle("hidden", !loggedIn);
+            historyPanel.classList.toggle("hidden", !loggedIn);
+        }
+
+        function renderHistory() {
+            if (!state.authState.loggedIn) {
+                historyList.innerHTML = "";
+                historyEmpty.classList.add("hidden");
+                return;
+            }
+
+            const sorted = [...state.conversations].sort((a, b) => {
+                return a.updatedAt < b.updatedAt ? 1 : -1;
+            });
+
+            historyList.innerHTML = "";
+
+            if (!sorted.length) {
+                historyEmpty.classList.remove("hidden");
+                return;
+            }
+
+            historyEmpty.classList.add("hidden");
+
+            sorted.forEach((conversation) => {
+                const card = document.createElement("article");
+                card.className = "history-card";
+                if (conversation.id === state.currentConversationId) {
+                    card.classList.add("active");
+                }
+
+                const top = document.createElement("div");
+                top.className = "history-topline";
+
+                const title = document.createElement("h3");
+                title.className = "history-title";
+                title.textContent = conversation.title;
+
+                const tag = document.createElement("span");
+                tag.className = "history-tag " + conversation.status;
+                tag.textContent = formatStatus(conversation.status);
+
+                top.appendChild(title);
+                top.appendChild(tag);
+
+                const meta = document.createElement("div");
+                meta.className = "session-meta";
+                meta.textContent = conversation.updatedAt + " · " + (conversation.type === "therapist" ? "治疗师会话" : "AI会话");
+
+                const summary = document.createElement("p");
+                summary.className = "session-summary";
+                summary.textContent = conversation.summary;
+
+                card.appendChild(top);
+                card.appendChild(meta);
+                card.appendChild(summary);
+
+                if (conversation.type === "therapist") {
+                    const link = document.createElement("a");
+                    link.href = "therapist-chat.html";
+                    link.className = "ghost-btn";
+                    link.style.display = "inline-flex";
+                    link.style.alignItems = "center";
+                    link.style.textDecoration = "none";
+                    link.textContent = "打开治疗师页";
+                    card.appendChild(link);
+                }
+
+                historyList.appendChild(card);
+            });
+        }
+
+        function renderConversation() {
+            const conversation = getConversationById(state.currentConversationId);
+            chatMessages.innerHTML = "";
+
+            if (!conversation) return;
+
+            chatTitle.textContent = conversation.title;
+            chatSubtitle.textContent = conversation.type === "ai"
+                ? "结合当前被试者画像输出建议，可在需要时提示治疗师人工介入。"
+                : "当前为治疗师人工会话预览入口。";
+
+            conversation.messages.forEach((item) => {
+                const message = document.createElement("div");
+                message.className = "message " + item.role;
+                message.textContent = item.content;
+
+                const meta = document.createElement("span");
+                meta.className = "message-meta";
+                meta.textContent = item.timestamp;
+                message.appendChild(meta);
+
+                chatMessages.appendChild(message);
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function renderAll() {
+            renderAuth();
+            renderHistory();
+            renderConversation();
+            saveState();
+        }
+
+        function buildReply(text) {
+            const normalized = text.toLowerCase();
+            const needsHandoff = text.includes("治疗师介入")
+                || text.includes("人工")
+                || text.includes("情绪越来越差")
+                || normalized.includes("handoff");
+
+            if (text.includes("本周") || text.includes("干预计划")) {
+                return {
+                    content: "本周建议方案：\n1. 周一/周三/周五：复核 DLPFC 靶点后安排精准 TMS，并记录刺激前后情绪评分。\n2. 每日：采集睡眠时长、心率和 HRV，异常波动时标记为复盘事件。\n3. 周二/周四：进行 CBT 访谈，聚焦压力触发因素、回避行为和自我评价。\n4. 周末：汇总语音、HRV 与主观量表，判断下周是否调整干预强度。",
+                    requiresHandoff: false
+                };
+            }
+
+            if (normalized.includes("tms") || text.includes("推荐依据") || text.includes("为什么")) {
+                return {
+                    content: "推荐 TMS 的主要依据包括：\n1. S-A 轴分析中 DLPFC 相关偏移更明显，提示前额叶调控靶点值得优先复核。\n2. 360 FC 页面显示前额叶网络连接存在波动，可与神经调控方案联动。\n3. 生理与语音特征提示近期压力和唤醒水平不稳定，因此更适合采用可量化追踪的组合干预。",
+                    requiresHandoff: false
+                };
+            }
+
+            if (text.includes("风险")) {
+                return {
+                    content: "当前风险升高可能来自三个方面：\n1. HRV 波动和睡眠指标提示自主神经稳定性下降。\n2. 语音访谈特征中的能量和语速下降，可能反映情绪动力不足。\n3. 脑功能网络与 S-A 轴指标仍存在偏移，说明恢复趋势还需要持续观察。",
+                    requiresHandoff: false
+                };
+            }
+
+            if (needsHandoff) {
+                return {
+                    content: "从你刚才描述的情绪持续下滑、主观承受度下降和风险指标波动来看，单纯继续 AI 追问可能不够。建议由治疗师在线接入，进一步确认近端风险、药物依从性和家属支持情况。",
+                    requiresHandoff: true,
+                    reason: "触发原因：被试者主动提及“情绪越来越差/需要人工支持”，且当前画像中存在高风险预警与 HRV 波动增大。"
+                };
+            }
+
+            return {
+                content: "我会按“多模态证据 - 风险等级 - 干预目标 - 执行计划 - 复核指标”的顺序生成建议。当前更推荐组合方案：精准 TMS 作为神经调控候选，CBT 作为心理干预主线，同时用 HRV、睡眠、语音访谈特征追踪干预响应。",
+                requiresHandoff: false
+            };
+        }
+
+        function addMessageToCurrent(role, content) {
+            const conversation = getConversationById(state.currentConversationId);
+            if (!conversation) return;
+            conversation.messages.push({
+                role,
+                content,
+                timestamp: formatNowTime()
+            });
+            conversation.updatedAt = "2026-05-12 " + formatNowTime();
+            conversation.summary = content.replace(/\n/g, " ").slice(0, 42) + (content.length > 42 ? "..." : "");
+        }
+
+        function openHandoff(reason) {
+            state.pendingHandoff = {
+                conversationId: state.currentConversationId,
+                reason
+            };
+            handoffReason.textContent = reason;
+            handoffModalMask.classList.add("open");
+            saveState();
+        }
+
+        function closeHandoff() {
+            handoffModalMask.classList.remove("open");
+            state.pendingHandoff = null;
+            saveState();
+        }
+
+        function ensureTherapistConversation() {
+            let conversation = state.conversations.find((item) => item.type === "therapist");
+            if (conversation) return conversation;
+
+            conversation = {
+                id: "conv-therapist-1",
+                title: "治疗师人工接入会话",
+                type: "therapist",
+                status: "active",
+                updatedAt: "2026-05-12 " + formatNowTime(),
+                summary: "治疗师已接入，可查看既往 AI 历史并继续人工沟通。",
+                messages: [
+                    {
+                        role: "system",
+                        content: "治疗师已接入。此会话保留原 AI 历史作为上文参考，请基于被试者近期风险、药物依从性和家属反馈继续沟通。",
+                        timestamp: formatNowTime()
+                    }
+                ]
+            };
+
+            state.conversations.unshift(conversation);
+            state.therapistConversationId = conversation.id;
+            return conversation;
+        }
+
+        function confirmHandoff() {
+            const current = getConversationById(state.currentConversationId);
+            if (!current) return;
+
+            current.status = "handed_off";
+            addMessageToCurrent("system", "系统提示：已发起治疗师线上接入。原 AI 会话将继续保留，治疗师将查看既往历史后开展人工沟通。");
+
+            const therapistConversation = ensureTherapistConversation();
+            therapistConversation.updatedAt = "2026-05-12 " + formatNowTime();
+
+            closeHandoff();
+            renderAll();
+        }
+
+        function submitPrompt(text) {
+            const value = text.trim();
+            if (!value) return;
+
+            addMessageToCurrent("user", value);
+            renderConversation();
+            chatInput.value = "";
+
+            window.setTimeout(() => {
+                const reply = buildReply(value);
+                addMessageToCurrent("assistant", reply.content);
+                renderAll();
+
+                if (reply.requiresHandoff) {
+                    openHandoff(reply.reason);
+                }
+            }, 260);
+        }
+
+        loginToggleBtn.addEventListener("click", () => {
+            state.authState.loggedIn = !state.authState.loggedIn;
+            state.authState.role = state.authState.loggedIn ? "patient" : "guest";
+            renderAll();
+        });
+
+        logoutBtn.addEventListener("click", () => {
+            state.authState.loggedIn = false;
+            state.authState.role = "guest";
+            renderAll();
+        });
+
+        resetDataBtn.addEventListener("click", () => {
+            state = createDefaultState();
+            renderAll();
+        });
+
+        chatForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            submitPrompt(chatInput.value);
+        });
+
+        quickButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                submitPrompt(button.dataset.prompt);
+            });
+        });
+
+        confirmHandoffBtn.addEventListener("click", confirmHandoff);
+        cancelHandoffBtn.addEventListener("click", closeHandoff);
+        handoffModalMask.addEventListener("click", (event) => {
+            if (event.target === handoffModalMask) {
+                closeHandoff();
+            }
+        });
+
+        renderAll();
+    </script>
+</body>
+</html>

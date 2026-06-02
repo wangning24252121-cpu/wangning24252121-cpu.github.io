@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>治疗师接入会话</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .therapist-page {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .therapist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .therapist-title {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .therapist-subtitle,
+        .info-copy,
+        .timeline-meta,
+        .timeline-summary,
+        .message-copy,
+        .empty-copy {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .therapist-layout {
+            display: grid;
+            gap: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel,
+        .chat-panel,
+        .history-stream {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .panel,
+        .chat-panel {
+            padding: 20px;
+        }
+
+        .panel-title {
+            margin: 12px 0 8px;
+            font-size: 16px;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.24);
+            color: var(--warning);
+            font-size: 12px;
+        }
+
+        .fact-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .fact-item,
+        .timeline-card {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 194, 230, 0.16);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .timeline-stack {
+            display: grid;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 16px 20px 20px;
+        }
+
+        .timeline-title {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 440px;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 18px 0;
+            overflow-y: auto;
+        }
+
+        .message {
+            max-width: 78%;
+            padding: 14px 16px;
+            border-radius: 8px;
+            line-height: 1.75;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+
+        .message.system {
+            max-width: 100%;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.24);
+            color: #fde68a;
+        }
+
+        .message.therapist {
+            align-self: flex-end;
+            background: rgba(45, 212, 191, 0.14);
+            border: 1px solid rgba(45, 212, 191, 0.34);
+        }
+
+        .message.user {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(148, 194, 230, 0.18);
+        }
+
+        .message-meta {
+            display: block;
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .chat-input {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 120px;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .chat-input textarea {
+            width: 100%;
+            min-height: 56px;
+            padding: 13px 14px;
+            color: var(--text-primary);
+            background: rgba(7, 17, 31, 0.78);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .chat-input textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .send-btn {
+            min-height: 56px;
+            border-radius: 6px;
+            border: 1px solid rgba(45, 212, 191, 0.42);
+            background: rgba(45, 212, 191, 0.1);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .send-btn:hover {
+            background: rgba(45, 212, 191, 0.16);
+            border-color: var(--accent-color);
+        }
+
+        @media (max-width: 960px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .therapist-header,
+            .chat-header,
+            .chat-input {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="therapist-page">
+        <nav class="return-nav">
+            <a href="AI.html" class="back-btn back-icon" aria-label="返回AI助手" title="返回AI助手"><img src="123.svg" alt=""></a>
+        </nav>
+
+        <header class="header therapist-header">
+            <div>
+                <div class="project-kicker">治疗师人工接入 · 会话工作台</div>
+                <h1 class="therapist-title">治疗师接入会话</h1>
+                <p class="therapist-subtitle">上方查看被试者既往 AI 对话与接入原因，下方继续与被试者人工沟通。AI 原会话保留，人工会话独立记录。</p>
+            </div>
+            <div class="status-chip">治疗师已接入</div>
+        </header>
+
+        <section class="therapist-layout">
+            <section class="info-grid">
+                <article class="panel">
+                    <div class="project-kicker">被试者信息</div>
+                    <h2 class="panel-title">接入摘要</h2>
+                    <div class="fact-list" id="patientFacts"></div>
+                </article>
+
+                <article class="panel">
+                    <div class="project-kicker">既往 AI 历史</div>
+                    <h2 class="panel-title">历史会话摘要</h2>
+                    <div class="timeline-stack" id="historyTimeline"></div>
+                    <div class="empty-copy" id="historyEmpty">当前暂无 AI 历史可供治疗师查看。</div>
+                </article>
+            </section>
+
+            <section class="chat-panel">
+                <div class="chat-header">
+                    <div>
+                        <h2 id="chatSessionTitle">治疗师人工会话</h2>
+                        <p class="message-copy">治疗师可查看被试者接入前的 AI 历史，并在此页面继续人工沟通。</p>
+                    </div>
+                    <div class="status-chip">实时会话中</div>
+                </div>
+
+                <div class="messages" id="therapistMessages"></div>
+
+                <form class="chat-input" id="therapistForm">
+                    <textarea id="therapistInput" placeholder="输入治疗师给被试者的回复，例如：我先确认一下你最近三天的睡眠和服药情况。"></textarea>
+                    <button type="submit" class="send-btn">发送回复</button>
+                </form>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "qsn-ai-demo-state-v1";
+
+        const patientFacts = document.getElementById("patientFacts");
+        const historyTimeline = document.getElementById("historyTimeline");
+        const historyEmpty = document.getElementById("historyEmpty");
+        const therapistMessages = document.getElementById("therapistMessages");
+        const therapistForm = document.getElementById("therapistForm");
+        const therapistInput = document.getElementById("therapistInput");
+        const chatSessionTitle = document.getElementById("chatSessionTitle");
+
+        function createFallbackState() {
+            return {
+                patientProfile: {
+                    name: "张晓晨",
+                    recordNo: "#HZ-20260501",
+                    genderAge: "女 / 28 岁",
+                    admitDate: "2026-05-01",
+                    phase: "第 3 次随访"
+                },
+                pendingHandoff: null,
+                therapistConversationId: null,
+                conversations: []
+            };
+        }
+
+        function loadState() {
+            try {
+                const raw = window.localStorage.getItem(STORAGE_KEY);
+                if (!raw) return createFallbackState();
+                return JSON.parse(raw);
+            } catch (error) {
+                return createFallbackState();
+            }
+        }
+
+        const state = loadState();
+
+        function formatNowTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            return hours + ":" + minutes;
+        }
+
+        function getTherapistConversation() {
+            if (state.therapistConversationId) {
+                return state.conversations.find((item) => item.id === state.therapistConversationId);
+            }
+            return state.conversations.find((item) => item.type === "therapist");
+        }
+
+        function saveState() {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function renderFacts() {
+            const therapistConversation = getTherapistConversation();
+            const handoffSource = state.conversations.find((item) => item.status === "handed_off" && item.type === "ai");
+            const profile = state.patientProfile;
+
+            patientFacts.innerHTML = "";
+
+            const items = [
+                "被试者：" + profile.name + " · " + profile.recordNo,
+                "基础信息：" + profile.genderAge + "，入院日期 " + profile.admitDate,
+                "当前阶段：" + profile.phase,
+                "接入来源：" + (handoffSource ? handoffSource.title : "暂无 AI 转人工记录"),
+                "接入原因：情绪下滑、风险指标波动，需要治疗师进一步核实近端风险和依从性",
+                "当前人工会话：" + (therapistConversation ? therapistConversation.title : "未创建")
+            ];
+
+            items.forEach((text) => {
+                const row = document.createElement("div");
+                row.className = "fact-item";
+                row.textContent = text;
+                patientFacts.appendChild(row);
+            });
+        }
+
+        function renderHistory() {
+            const history = state.conversations.filter((item) => item.type === "ai");
+            historyTimeline.innerHTML = "";
+
+            if (!history.length) {
+                historyEmpty.style.display = "block";
+                return;
+            }
+
+            historyEmpty.style.display = "none";
+
+            history
+                .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+                .forEach((conversation) => {
+                    const card = document.createElement("article");
+                    card.className = "timeline-card";
+
+                    const title = document.createElement("h3");
+                    title.className = "timeline-title";
+                    title.textContent = conversation.title;
+
+                    const meta = document.createElement("div");
+                    meta.className = "timeline-meta";
+                    meta.textContent = conversation.updatedAt + " · " + (conversation.status === "handed_off" ? "已转治疗师" : "AI会话");
+
+                    const summary = document.createElement("p");
+                    summary.className = "timeline-summary";
+                    summary.textContent = conversation.summary;
+
+                    card.appendChild(title);
+                    card.appendChild(meta);
+                    card.appendChild(summary);
+                    historyTimeline.appendChild(card);
+                });
+        }
+
+        function renderMessages() {
+            const conversation = getTherapistConversation();
+            therapistMessages.innerHTML = "";
+
+            if (!conversation) {
+                const empty = document.createElement("div");
+                empty.className = "message system";
+                empty.textContent = "当前还没有治疗师人工接入会话。请先在 AI 助手页触发并确认人工介入。";
+                therapistMessages.appendChild(empty);
+                chatSessionTitle.textContent = "治疗师人工会话";
+                return;
+            }
+
+            chatSessionTitle.textContent = conversation.title;
+
+            conversation.messages.forEach((item) => {
+                const message = document.createElement("div");
+                message.className = "message " + item.role;
+                message.textContent = item.content;
+
+                const meta = document.createElement("span");
+                meta.className = "message-meta";
+                meta.textContent = item.timestamp;
+                message.appendChild(meta);
+
+                therapistMessages.appendChild(message);
+            });
+
+            therapistMessages.scrollTop = therapistMessages.scrollHeight;
+        }
+
+        therapistForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const value = therapistInput.value.trim();
+            if (!value) return;
+
+            const conversation = getTherapistConversation();
+            if (!conversation) return;
+
+            conversation.messages.push({
+                role: "therapist",
+                content: value,
+                timestamp: formatNowTime()
+            });
+            conversation.updatedAt = "2026-05-12 " + formatNowTime();
+            conversation.summary = value.slice(0, 42) + (value.length > 42 ? "..." : "");
+
+            therapistInput.value = "";
+            saveState();
+            renderMessages();
+        });
+
+        renderFacts();
+        renderHistory();
+        renderMessages();
+    </script>
+</body>
+</html>

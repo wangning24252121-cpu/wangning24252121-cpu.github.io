@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能诊疗服务平台 - 登录</title>
+  <style>
+    :root {
+      --bg: #05080f;
+      --panel: rgba(13, 19, 31, 0.86);
+      --panel-strong: rgba(18, 27, 42, 0.96);
+      --line: rgba(116, 137, 168, 0.22);
+      --text: #eef5ff;
+      --muted: #8ea0b8;
+      --soft: #c2d0e3;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --amber: #f6c85f;
+      --red: #fb7185;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(34, 211, 238, 0.2), transparent 28%),
+        radial-gradient(circle at 82% 78%, rgba(74, 222, 128, 0.13), transparent 28%),
+        linear-gradient(135deg, #04070d 0%, #0a101a 48%, #05070c 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent 78%);
+    }
+
+    .page {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+      align-items: stretch;
+    }
+
+    .brand-side {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 54px 64px;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .brand-side::after {
+      content: "";
+      position: absolute;
+      width: 620px;
+      height: 620px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -45%);
+      border-radius: 50%;
+      border: 1px solid rgba(34, 211, 238, 0.16);
+      box-shadow:
+        inset 0 0 80px rgba(34, 211, 238, 0.06),
+        0 0 100px rgba(34, 211, 238, 0.08);
+      pointer-events: none;
+    }
+
+    .logo-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(34, 211, 238, 0.24), rgba(74, 222, 128, 0.16));
+      border: 1px solid rgba(117, 229, 241, 0.42);
+      box-shadow: 0 0 28px rgba(34, 211, 238, 0.22);
+    }
+
+    .logo-mark svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--cyan);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .logo-text strong {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .logo-text span {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 1;
+      max-width: 650px;
+      padding: 50px 0 70px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--cyan);
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 28px 0 18px;
+      font-size: clamp(38px, 5vw, 64px);
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 540px;
+      color: var(--soft);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .brain-panel {
+      position: relative;
+      width: min(520px, 90%);
+      aspect-ratio: 1.3;
+      margin-top: 42px;
+      border: 1px solid rgba(125, 147, 178, 0.22);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(18, 31, 49, 0.86), rgba(8, 12, 20, 0.8)),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 20px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .brain-panel::before {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50% 46% 52% 45%;
+      background:
+        radial-gradient(circle at 38% 35%, rgba(34, 211, 238, 0.36), transparent 14%),
+        radial-gradient(circle at 62% 58%, rgba(74, 222, 128, 0.28), transparent 12%),
+        radial-gradient(circle at 50% 50%, rgba(145, 161, 185, 0.2), transparent 56%);
+      border: 1px solid rgba(34, 211, 238, 0.28);
+      filter: drop-shadow(0 0 34px rgba(34, 211, 238, 0.24));
+    }
+
+    .brain-panel::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 47%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.72), transparent);
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.8);
+    }
+
+    .scan-meta {
+      position: absolute;
+      inset: 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-content: space-between;
+      color: rgba(210, 224, 242, 0.74);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .metric-strip {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 720px;
+    }
+
+    .metric {
+      padding: 18px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(12, 18, 29, 0.64);
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 24px;
+      color: #ffffff;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .login-side {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+    }
+
+    .login-panel {
+      width: 100%;
+      max-width: 456px;
+      padding: 36px;
+      border: 1px solid rgba(136, 154, 184, 0.24);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel-head {
+      margin-bottom: 28px;
+    }
+
+    .panel-head h2 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .panel-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .role-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 24px;
+      padding: 4px;
+      border: 1px solid rgba(127, 145, 172, 0.18);
+      border-radius: 8px;
+      background: rgba(5, 8, 15, 0.64);
+    }
+
+    .role-tabs button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .role-tabs button.active {
+      color: #051016;
+      background: linear-gradient(135deg, var(--cyan), #7dd3fc);
+      box-shadow: 0 8px 18px rgba(34, 211, 238, 0.18);
+      font-weight: 700;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    .control {
+      position: relative;
+    }
+
+    .control svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      transform: translateY(-50%);
+      stroke: var(--muted);
+    }
+
+    .control input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px 0 44px;
+      border: 1px solid rgba(139, 156, 184, 0.24);
+      border-radius: 8px;
+      outline: none;
+      color: var(--text);
+      background: rgba(4, 8, 15, 0.78);
+      font-size: 15px;
+      transition: 0.18s ease;
+    }
+
+    .control input:focus {
+      border-color: rgba(34, 211, 238, 0.76);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+    }
+
+    .options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 6px 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--cyan);
+    }
+
+    .options a,
+    .foot a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .login-btn {
+      width: 100%;
+      height: 50px;
+      border: 0;
+      border-radius: 8px;
+      color: #041016;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 16px 34px rgba(34, 211, 238, 0.22);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 42px rgba(34, 211, 238, 0.28);
+    }
+
+    .divider {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      height: 1px;
+      background: rgba(139, 156, 184, 0.2);
+    }
+
+    .secondary-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .ghost-btn {
+      height: 42px;
+      border: 1px solid rgba(139, 156, 184, 0.22);
+      border-radius: 8px;
+      color: var(--soft);
+      background: rgba(255, 255, 255, 0.03);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .foot {
+      margin-top: 26px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 960px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-side {
+        min-height: 520px;
+        padding: 34px 28px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .hero {
+        padding: 44px 0 34px;
+      }
+
+      .metric-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .login-side {
+        padding: 30px 20px 42px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .brand-side {
+        min-height: auto;
+      }
+
+      .brain-panel {
+        width: 100%;
+        margin-top: 28px;
+      }
+
+      .login-panel {
+        padding: 26px 20px;
+      }
+
+      .role-tabs {
+        grid-template-columns: 1fr;
+      }
+
+      .options,
+      .secondary-actions {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="brand-side" aria-label="平台概览">
+      <div class="logo-row">
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+            <path d="M9 3a4 4 0 0 0-4 4v1.5A3.5 3.5 0 0 0 7 15v1a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-1a3.5 3.5 0 0 0 2-6.5V7a4 4 0 0 0-4-4" />
+            <path d="M12 4v16M8 9h8M9 14h6" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <strong>智能诊疗服务平台</strong>
+          <span>Intelligent Serve Hub</span>
+        </div>
+      </div>
+
+      <div class="hero">
+        <span class="eyebrow">脑结构影像 · 个体化分析 · 临床协同</span>
+        <h1>安全进入智能诊疗工作台</h1>
+        <p>面向医生、管理员与科研人员的统一访问入口，连接脑结构偏移分析、筛查档案、治疗方案与数据管理流程。</p>
+
+        <div class="brain-panel" aria-hidden="true">
+          <div class="scan-meta">
+            <div>SUBJECT ID: 20260602<br>SCAN: T1 / STRUCTURE<br>STATUS: READY</div>
+            <div>AXIAL<br>SAGITTAL<br>CORONAL</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric">
+          <b>98.6%</b>
+          <span>影像质控通过率</span>
+        </div>
+        <div class="metric">
+          <b>24h</b>
+          <span>诊疗数据持续同步</span>
+        </div>
+        <div class="metric">
+          <b>3D</b>
+          <span>脑结构偏移可视化</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-side" aria-label="登录表单">
+      <form class="login-panel" action="个体数字画像档案列表.html">
+        <div class="panel-head">
+          <h2>账号登录</h2>
+          <p>请输入平台账号信息，系统将根据权限进入对应工作台。</p>
+        </div>
+
+        <div class="role-tabs" role="tablist" aria-label="登录角色">
+          <button class="active" type="button">医生</button>
+          <button type="button">管理员</button>
+          <button type="button">科研</button>
+        </div>
+
+        <div class="field">
+          <label for="account">账号</label>
+          <div class="control">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input id="account" type="text" placeholder="请输入手机号 / 工号" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">密码</label>
+          <div class="control">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <input id="password" type="password" placeholder="请输入登录密码" autocomplete="current-password">
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="check">
+            <input type="checkbox" checked>
+            <span>记住登录状态</span>
+          </label>
+          <a href="#">忘记密码</a>
+        </div>
+
+        <button class="login-btn" type="submit">登录平台</button>
+
+        <div class="divider">其他入口</div>
+
+        <div class="secondary-actions">
+          <button class="ghost-btn" type="button">短信验证码</button>
+          <button class="ghost-btn" type="button">院内单点登录</button>
+        </div>
+
+        <div class="foot">
+          首次使用请联系平台管理员开通账号
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const roleButtons = document.querySelectorAll(".role-tabs button");
+
+    roleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        roleButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

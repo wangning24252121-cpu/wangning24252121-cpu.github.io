@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个体数字画像档案列表</title>
+    <style>
+        :root {
+            --bg-color: #050a18;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #00e5ff;
+            --border-color: rgba(0, 191, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a0c4ff;
+            --danger: #ff4d4d;
+            --success: #00ff88;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 顶部标题栏 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #fff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card .label { color: var(--text-secondary); font-size: 14px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: var(--accent-color); }
+
+        /* 过滤栏 */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: rgba(12, 27, 46, 0.82);
+            border: 1px solid rgba(79, 139, 199, 0.52);
+            padding: 16px;
+            border-radius: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-query,
+        .btn-reset {
+            border: none;
+            min-height: 34px;
+            padding: 0 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-query {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-summary {
+            margin: -6px 0 14px;
+            color: #b9e9ff;
+            font-size: 13px;
+        }
+
+        input, select {
+            height: 34px;
+            background: #071528;
+            border: 1px solid rgba(79, 139, 199, 0.55);
+            color: white;
+            padding: 0 14px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--accent-color); }
+
+        .source-input {
+            flex: 1 1 520px;
+            min-width: 240px;
+        }
+
+        .filter-select {
+            flex: 0 0 144px;
+        }
+
+        /* 数据表格 */
+        .table-container {
+            background: rgba(10, 25, 45, 0.86);
+            border: 1px solid rgba(55, 112, 169, 0.56);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        thead {
+            background: rgba(15, 79, 94, 0.84);
+        }
+
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(103, 153, 204, 0.13);
+        }
+
+        th {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 13px;
+        }
+
+        td {
+            color: #f8fbff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        tbody tr { transition: 0.3s; }
+        tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        .subject-code {
+            letter-spacing: 0.2px;
+        }
+
+        .gender-badge {
+            display: inline-flex;
+            min-width: 50px;
+            height: 30px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(44, 124, 223, 0.62);
+            border-radius: 4px;
+            background: rgba(33, 75, 137, 0.36);
+            color: #4db5ff;
+            font-weight: 500;
+        }
+
+        /* 操作按钮 */
+        .btn-view {
+            color: #1fa7ff;
+            text-decoration: none;
+            font-size: 14px;
+            border: none;
+            padding: 0;
+            transition: 0.3s;
+            margin-right: 18px;
+        }
+
+        .btn-view:hover {
+            color: var(--accent-color);
+        }
+
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="main-container">
+     <div class="header">
+        <h1>个体数字画像档案列表</h1>
+        <div class="header-actions">
+            <div class="user-info">当前操作员：Admin_01</div>
+            <nav class="return-nav">
+                <a href="登录页面.html" class="back-btn back-icon" aria-label="返回登录页" title="返回登录页"><img src="123.svg" alt=""></a>
+            </nav>
+        </div>
+    </div>
+
+
+   
+    <!-- 顶部数据概览 -->
+    <!-- <div class="stats-grid">
+        <div class="stat-card">
+            <div class="label">在档总人数</div>
+            <div class="value">1,284</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">今日新增画像</div>
+            <div class="value">12</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">高风险预警</div>
+            <div class="value" style="color: var(--danger);">08</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">平均康复进度</div>
+            <div class="value">76.4%</div>
+        </div>
+    </div> -->
+
+    <!-- 搜索过滤栏 -->
+    <div class="filter-bar">
+        <input id="sourceInput" class="source-input" type="text" placeholder="数据来源">
+        <select id="cityFilter" class="filter-select">
+            <option value="南京">南京</option>
+            <option value="沈阳">沈阳</option>
+        </select>
+        <select id="cohortFilter" class="filter-select">
+            <option value="青少年">青少年</option>
+            <option value="音乐治疗">音乐治疗</option>
+            <!-- <option value="">全部队列</option> -->
+        </select>
+        <div class="filter-actions">
+            <button id="queryButton" class="btn-query" type="button">查询</button>
+            <button id="resetButton" class="btn-reset" type="button">重置</button>
+        </div>
+    </div>
+    <div id="resultSummary" class="result-summary">当前显示 10 条档案，共 2261 条</div>
+
+    <!-- 档案列表 -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>被试者编码</th>
+                    <th>性别</th>
+                    <th>年龄</th>
+                    <th>诊断</th>
+                    <th>组别</th>
+                    <th>入组时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="archiveTableBody">
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001993</td>
+                    <td><span class="gender-badge">男</span></td>
+                    <td>18</td>
+                    <td>2重性抑郁障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-10</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001996</td>
+                    <td><span class="gender-badge">男</span></td>
+                    <td>45</td>
+                    <td>99其它诊断:</td>
+                    <td>rTMS组</td>
+                    <td>2024-12-09</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001995</td>
+                    <td><span class="gender-badge">未知</span></td>
+                    <td>17</td>
+                    <td>4双相情感障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-09</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001994</td>
+                    <td><span class="gender-badge">未知</span></td>
+                    <td>18</td>
+                    <td>4双相情感障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-09</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001985</td>
+                    <td><span class="gender-badge">未知</span></td>
+                    <td>19</td>
+                    <td>4双相情感障碍</td>
+                    <td>常规rTMS组</td>
+                    <td>2024-12-05</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001987</td>
+                    <td><span class="gender-badge">未知</span></td>
+                    <td>19</td>
+                    <td>2重性抑郁障碍</td>
+                    <td>rTMS组</td>
+                    <td>2024-12-05</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001982</td>
+                    <td><span class="gender-badge">女</span></td>
+                    <td>16</td>
+                    <td>4双相情感障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-04</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001980</td>
+                    <td><span class="gender-badge">男</span></td>
+                    <td>22</td>
+                    <td>2重性抑郁障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-03</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001979</td>
+                    <td><span class="gender-badge">未知</span></td>
+                    <td>20</td>
+                    <td>99其它诊断:</td>
+                    <td>rTMS组</td>
+                    <td>2024-12-02</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr data-source="南京" data-city="南京" data-cohort="青少年">
+                    <td class="subject-code">NN_00001976</td>
+                    <td><span class="gender-badge">女</span></td>
+                    <td>18</td>
+                    <td>4双相情感障碍</td>
+                    <td>普通组</td>
+                    <td>2024-12-01</td>
+                    <td><a href="个体数字画像.html" class="btn-view">个体数字画像</a><a href="#" class="btn-view">导出诊断报告</a></td>
+                </tr>
+                <tr id="emptyRow" style="display: none;">
+                    <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 32px;">未找到符合条件的档案</td>
+                </tr>
+                <!-- 更多数据... -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pager">
+        <span style="color: var(--text-secondary); line-height: 30px;">共 128 页</span>
+        <button style="background:none; border: 1px solid var(--border-color); color:white; padding: 5px 10px; cursor:pointer;">上一页</button>
+        <button style="background:var(--accent-color); border: none; color:#000; padding: 5px 10px; font-weight:bold; cursor:pointer;">1</button>
+        <button style="background:none; border: 1px solid var(--border-color); color:white; padding: 5px 10px; cursor:pointer;">2</button>
+        <button style="background:none; border: 1px solid var(--border-color); color:white; padding: 5px 10px; cursor:pointer;">下一页</button>
+    </div>
+</div>
+
+<script>
+    const sourceInput = document.getElementById("sourceInput");
+    const cityFilter = document.getElementById("cityFilter");
+    const cohortFilter = document.getElementById("cohortFilter");
+    const queryButton = document.getElementById("queryButton");
+    const resetButton = document.getElementById("resetButton");
+    const resultSummary = document.getElementById("resultSummary");
+    const emptyRow = document.getElementById("emptyRow");
+    const archiveRows = Array.from(document.querySelectorAll("#archiveTableBody tr"))
+        .filter((row) => row.id !== "emptyRow");
+    const totalArchiveCount = 2261;
+
+    function normalize(text) {
+        return text.trim().toLowerCase();
+    }
+
+    function getRowData(row) {
+        const cells = row.querySelectorAll("td");
+        return {
+            source: normalize(row.dataset.source || ""),
+            city: row.dataset.city || "",
+            cohort: row.dataset.cohort || "",
+            subjectCode: normalize(cells[0].textContent),
+            gender: normalize(cells[1].textContent),
+            age: normalize(cells[2].textContent),
+            diagnosis: normalize(cells[3].textContent),
+            group: normalize(cells[4].textContent),
+            entryDate: normalize(cells[5].textContent)
+        };
+    }
+
+    function filterArchiveRows() {
+        const sourceKeyword = normalize(sourceInput.value);
+        const cityValue = cityFilter.value;
+        const cohortValue = cohortFilter.value;
+        let visibleCount = 0;
+
+        archiveRows.forEach((row) => {
+            const rowData = getRowData(row);
+            const rowSearchText = [
+                rowData.source,
+                rowData.subjectCode,
+                rowData.gender,
+                rowData.age,
+                rowData.diagnosis,
+                rowData.group,
+                rowData.entryDate
+            ].join(" ");
+
+            const matchesSource = !sourceKeyword || rowSearchText.includes(sourceKeyword);
+            const matchesCity = !cityValue || rowData.city === cityValue;
+            const matchesCohort = !cohortValue || rowData.cohort === cohortValue;
+            const shouldShow = matchesSource && matchesCity && matchesCohort;
+
+            row.style.display = shouldShow ? "" : "none";
+            if (shouldShow) visibleCount += 1;
+        });
+
+        emptyRow.style.display = visibleCount === 0 ? "" : "none";
+        resultSummary.textContent = `当前显示 ${visibleCount} 条档案，共 ${totalArchiveCount} 条`;
+    }
+
+    function resetFilters() {
+        sourceInput.value = "";
+        cityFilter.value = "南京";
+        cohortFilter.value = "青少年";
+        filterArchiveRows();
+        sourceInput.focus();
+    }
+
+    sourceInput.addEventListener("input", filterArchiveRows);
+    sourceInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            filterArchiveRows();
+        }
+    });
+    cityFilter.addEventListener("change", filterArchiveRows);
+    cohortFilter.addEventListener("change", filterArchiveRows);
+    queryButton.addEventListener("click", filterArchiveRows);
+    resetButton.addEventListener("click", resetFilters);
+
+    filterArchiveRows();
+</script>
+
+</body>
+</html>
